@@ -55,4 +55,29 @@
         </div>
     </div>
 </body>
+<script>
+    $(function () {
+        // 1.查询个人信息，页面加载发送ajax请求
+        // 2.实现换头像和用户名的功能
+        $.ajax({
+            url: 'http://localhost:8080/api/v1/admin/user/info',
+            type: 'get',
+            dataType: 'json',
+            success: function (res) {
+                console.log(999);
+                
+                $('.user_info>img').attr('src', res.data.userPic);
+                $('.user_center_link>img').attr('src',res.data.userPic);
+                $('.user_info>span').html('欢迎&nbsp;&nbsp;'+res.data.nickname+'');
+            }
+        })
+
+        // 实现退出，给退出按钮注册点击事件
+        $('.logout').on('click',function(){
+            window.localStorage.removeItem('token');
+            window.location.href='./login.html';
+        })
+    })
+</script>
+
 </html>
