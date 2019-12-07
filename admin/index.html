@@ -55,12 +55,14 @@
         </div>
     </div>
 </body>
+<script src='../admin/libs/http.js'></script>
 <script>
+    
     $(function () {
         // 1.查询个人信息，页面加载发送ajax请求
         // 2.实现换头像和用户名的功能
         $.ajax({
-            url: 'http://localhost:8080/api/v1/admin/user/info',
+            url: window.BigNew.user_info,
             type: 'get',
             dataType: 'json',
             success: function (res) {
