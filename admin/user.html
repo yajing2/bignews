@@ -69,5 +69,58 @@
         </div>
     </div>
 </body>
+<script src="./libs/http.js"></script>
+<script>
+    $(function () {
+        $.get({
+            url: BigNew.user_detail,
+            success: function (res) {
+                // 利用for...in获取里面的数据
+                for (let key in res.data) {
+                    $('input.' + key).val(res.data[key]);
+                };
+                $('img.user_pic').attr('src', res.data.userPic);
+            }
+        })
+
+        //给文件域注册一个change事件，当选择图片之后，在图片标签中展示我们 选择的图片
+        //用来处理用户选择图片的时候，有一个预览效果
+        $('#exampleInputFile').on('change', function (e) {
+            let imgFile = this.files[0];
+            let url = URL.createObjectURL(imgFile);
+            $('img.user_pic').attr('src', url);
+        })
+        // 给修改按钮注册点击实际
+        $('.btn-edit').on('click', function (e) {
+            // 阻止默认行为
+            e.preventDefault();
+            // 获取表单数据
+            let form = $('#form')[0];
+            let userdata = new FormData(form);
+            // 发送ajax请求
+            $.post({
+                url: BigNew.user_edit,
+                data: userdata,
+                //    不要改变请求头和请求数据
+                processData: false,
+                contentType: false,
+                success: function (res) {
+                    if (res.code === 200) {
+                        $.get({
+                            url:BigNew.user_info,
+                            success:function(res){
+                                //获取服务器返回的数据，使用这些数据去渲染页面的内容
+                                parent.$('.user_info img').attr('src',res.data.userPic);
+                                parent.$('.user_info span').html('欢迎&nbsp;&nbsp;' + res.data.nickname + '');
+                                parent.$('.user_center_link>img').attr('src',res.data.userPic);
+                            }
+                        })
+                    }
+                }
+            })
+
+        })
+    })
+</script>
 
 </html>
