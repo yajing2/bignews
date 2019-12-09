@@ -31,14 +31,14 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
+                    <!-- <tr>
                         <td>奇趣事</td>
                         <td>funny</td>
                         <td class="text-center">
                             <a href="javascript:void(0)" data-toggle="modal" class=" btn btn-info btn-xs">编辑</a>
                             <a href="javascript:void(0)" class="btn btn-danger btn-xs">删除</a>
                         </td>
-                    </tr>
+                    </tr> -->
                 </tbody>
                 <tfoot>
                     <tr>
@@ -51,5 +51,160 @@
             </table>
         </div>
     </div>
+
+    <!-- 使用模态框 -->
+    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="exampleModalLabel">文章分类</h4>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <!-- 使用这个隐藏域来存储文章分类id -->
+                        <input type="hidden" name="id" id="cateid">
+                        <div class="form-group">
+                            <label for="recipient-name" class="control-label">文章分类名称</label>
+                            <input type="text" class="form-control" id="recipient-name">
+                        </div>
+                        <div class="form-group">
+                            <label for="message-text" class="control-label">文章分类别名</label>
+                            <textarea class="form-control" id="message-text"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal" id="btn-cancel">取消</button>
+                    <button type="button" class="btn btn-primary" id="btn-confirm">确定</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+<script src="./libs/http.js"></script>
+<!-- text/html声明一个代码，指明这个文本方式是网页文件 -->
+<script type="text/html" id="categoryList">
+{{each data}}
+    <tr>
+            <td>{{$value.name}}</td>
+            <td>{{$value.slug}}</td>
+            <td class="text-center">
+                <a href="javascript:void(0)"  data-id='{{$value.id}}' data-toggle="modal" class=" btn btn-info btn-xs" data-target='#myModal'>编辑</a>
+                <a href="javascript:void(0)"  data-id='{{$value.id}}' class="btn btn-danger btn-xs" id='btn-delete'>删除</a>
+            </td>
+        </tr>
+{{/each}}
+</script>
+<script>
+    $(function () {
+        getDate();
+        function getDate() {
+            $.get({
+                url: BigNew.category_list,
+                success: function (res) {
+                    let htmlStr = template('categoryList', res);
+                    $('tbody').html(htmlStr);
+                }
+            })
+        }
+
+        // 当点击取消按钮的时候，将表单中的数据全部重置
+        $('#btn-cancel').on('click', function () {
+            $('form')[0].reset();
+        })
+        //当模态框在显示的时候，我们需要知道是哪一个按钮被点击了
+        $('#myModal').on('show.bs.modal', function (e) {
+            //e.relatedTarget获取到的就是触发这个模态框显示的dom元素
+            let dom = e.relatedTarget;
+            //  判断到底是谁触发了这个模态框显示
+            if (dom == $('#xinzengfenlei')[0]) {
+                $('#exampleModalLabel').text('新增文章分类')
+                $('#btn-confirm').text('新增').addClass('btn-success').removeClass('btn-primary');
+                $('form')[0].reset();
+                $('#btn-confirm').on('click', function () {
+                    let name = $('#recipient-name').val()
+                    let slug = $('#message-text').val()
+                    if (name === '' || slug === '') {
+                        alert('请填写数据')
+                        return;
+                    }
+                    $.post({
+                        url: BigNew.category_add,
+                        data: {
+                            name: name,
+                            slug: slug,
+                        },
+                        success: function (res) {
+                            if (res.code === 201) {
+                                $('#myModal').modal('hide')
+                                getDate();
+                            }
+                        }
+                    })
+                })
+            } else {
+                $('#exampleModalLabel').text('编辑文章分类')
+                $('#btn-confirm').text('编辑').addClass('btn-primary').removeClass('btn-success');
+                // 当弹出的编辑的模态框的时候，需要得到一个文章类别id，根据这个id，发送ajax请求获得具体的文章类别信息
+                let cateId = $(dom).attr('data-id');
+                $.get({
+                    url: BigNew.category_search,
+                    data: {
+                        id: cateId
+                    },
+                    success: function (res) {
+                        if (res.code === 200) {
+                            $('#recipient-name').val(res.data[0].name)
+                            $('#message-text').val(res.data[0].slug)
+                            $('#cateid').val(res.data[0].id)
+                        }
+                    }
+                })
+                $('#btn-confirm').on('click', function () {
+                    let name = $('#recipient-name').val()
+                    let slug = $('#message-text').val();
+                    let id = $('#cateid').val()
+                    $.post({
+                        url: BigNew.category_edit,
+                        data: {
+                            id: id,
+                            name: name,
+                            slug: slug,
+                        },
+                        success: function (res) {
+                            if (res.code === 200) {
+                                $('#myModal').modal('hide')
+                                getDate();
+                            }
+
+                        }
+                    })
+                })
+            }
+            // 任务： 只对btn-confirm注册一次点击事件，然后判断是新增还是编辑，然后做对应的处理？？？
+        })
+        // 给删除注册一个点击事件
+        // 因为这个删除是动态生成的，我们不能直接给他注册点击事件，需要使用委托
+        $('tbody').on('click','#btn-delete',function(){
+            let deleteID=$(this).attr('data-id');
+            let ans =confirm('你确定要删除吗');
+            if(ans){
+                $.post({
+                    url:BigNew.category_delete,
+                    data:{
+                        id:deleteID
+                    },
+                    success:function(res){
+                        if(res.code===204){
+                            getDate();
+                        }
+                    }
+                })
+            }
+        })
+    })
+</script>
 
 </html>
