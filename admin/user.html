@@ -106,6 +106,8 @@
                 contentType: false,
                 success: function (res) {
                     if (res.code === 200) {
+                        // 在子页面刷新父元素
+                        window.parent.location.reload();
                         $.get({
                             url:BigNew.user_info,
                             success:function(res){
