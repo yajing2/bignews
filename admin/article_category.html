@@ -114,7 +114,7 @@
         $('#btn-cancel').on('click', function () {
             $('form')[0].reset();
         })
-        //当模态框在显示的时候，我们需要知道是哪一个按钮被点击了
+        // //当模态框在显示的时候，我们需要知道是哪一个按钮被点击了
         $('#myModal').on('show.bs.modal', function (e) {
             //e.relatedTarget获取到的就是触发这个模态框显示的dom元素
             let dom = e.relatedTarget;
@@ -183,21 +183,89 @@
                     })
                 })
             }
-            // 任务： 只对btn-confirm注册一次点击事件，然后判断是新增还是编辑，然后做对应的处理？？？
         })
+        // 任务： 只对btn-confirm注册一次点击事件，然后判断是新增还是编辑，然后做对应的处理？？？
+        // $('#myModal').on('show.bs.modal', function (e) {
+        //     let target = e.relatedTarget;
+        //     if (target === $('xinzengfenlei')[0]) {
+        //         $('#exampleModalLabel').text('新增文章分类')
+        //         $('#btn-confirm').text('新增').addClass('btn-success').removeClass('btn-primary');
+        //         $('#btn-confirm').on('click', function () {
+        //         if ($(this).text() === '新增') {
+        //             $.post({
+        //                 url: BigNew.category_add,
+        //                 data: {
+        //                     name: $('#recipient-name').val(),
+        //                     slug: $('#message-text').val(),
+        //                 },
+        //                 success: function (res) {
+        //                     if (res.code === 201) {
+        //                         window.location.reload();
+        //                         $('#myModal').modal('hide')
+        //                         getDate();
+        //                     } else {
+        //                         alert(res.msg)
+        //                     }
+        //                 }
+        //             })
+                   
+        //         }
+        //     })
+        //     } else {
+        //         $('#btn-confirm').text('编辑').addClass('btn-primary').removeClass('btn-success');
+        //         // $('#recipient-name').val();
+        //         let cateId = $(target).attr('data-id');
+        //         $.get({
+        //             url: BigNew.category_search,
+        //             data: {
+        //                 id: cateId
+        //             },
+        //             success: function (res) {
+        //                 if (res.code === 200) {
+        //                     $('#recipient-name').val(res.data[0].name)
+        //                     $('#message-text').val(res.data[0].slug)
+        //                     $('#cateid').val(res.data[0].id)
+        //                 }
+        //             }
+        //         });
+        //         $('#btn-confirm').on('click', function () {
+        //             let name = $('#recipient-name').val()
+        //             let slug = $('#message-text').val();
+        //             let id = $('#cateid').val()
+        //             $.post({
+        //                 url: BigNew.category_edit,
+        //                 data: {
+        //                     id: id,
+        //                     name: name,
+        //                     slug: slug,
+        //                 },
+        //                 success: function (res) {
+        //                     if (res.code === 200) {
+        //                         $('#myModal').modal('hide')
+        //                         getDate();
+        //                     }
+
+        //                 }
+        //             })
+        //         })
+        //     }
+        // })
+
+
+
         // 给删除注册一个点击事件
         // 因为这个删除是动态生成的，我们不能直接给他注册点击事件，需要使用委托
-        $('tbody').on('click','#btn-delete',function(){
-            let deleteID=$(this).attr('data-id');
-            let ans =confirm('你确定要删除吗');
-            if(ans){
+        $('tbody').on('click', '#btn-delete', function () {
+            let deleteID = $(this).attr('data-id');
+            let ans = confirm('你确定要删除吗');
+            if (ans) {
                 $.post({
-                    url:BigNew.category_delete,
-                    data:{
-                        id:deleteID
+                    url: BigNew.category_delete,
+                    data: {
+                        id: deleteID
                     },
-                    success:function(res){
-                        if(res.code===204){
+                    success: function (res) {
+                        if (res.code === 204) {
                             getDate();
                         }
                     }
