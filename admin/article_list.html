@@ -11,6 +11,8 @@
     <link rel="stylesheet" href="./css/iconfont.css">
     <link rel="stylesheet" href="./css/main.css">
     <script src="./libs/jquery-1.12.4.min.js"></script>
+    <script src="./libs/bootstrap/js/bootstrap.min.js"></script>
+    <script src="./libs/jquery.twbsPagination.js"></script>
     <!-- 引入模板引擎js文件 -->
     <script src="./libs/template-web.js"></script>
 </head>
@@ -36,7 +38,7 @@
                             <option value="草稿">草稿</option>
                             <option value="已发布">已发布</option>
                         </select>
-                        <button id="btnSearch" class="btn btn-default btn-sm">筛选</button>
+                        <button id="btnSearch" class="btn btn-primary btn-sm">筛选</button>
                     </form>
                 </div>
                 <div class="col-xs-6">
@@ -69,6 +71,7 @@
                 </tbody>
             </table>
             <div class="row text-center">
+                <ul id="pagination-demo" class="pagination-sm"></ul>
             </div>
         </div>
     </div>
@@ -98,36 +101,67 @@
 {{/each}}
 </script>
 <script>
-// 当页面一加载就需要将文章类别信息和文章条目信息展示在页面
-$(function(){
-    //获取文章类别信息
-    $.get({
-        url: BigNew.category_list,
-        success:function(res){
-            if(res.code===200){
-                let htmlStr=template('categoryList',res)
-                $('#selCategory').html(htmlStr)
+    // 当页面一加载就需要将文章类别信息和文章条目信息展示在页面
+    $(function () {
+        //获取文章类别信息
+        $.get({
+            url: BigNew.category_list,
+            success: function (res) {
+                if (res.code === 200) {
+                    let htmlStr = template('categoryList', res)
+                    $('#selCategory').html(htmlStr)
+                }
             }
+        });
+
+        // 封装一个获取数据局的方法
+        function getData(pages, callback) {
+            $.get({
+                url: BigNew.article_query,
+                data: {
+                    type: $('#selCategory').val(),
+                    state: $('selStatus').val(),
+                    page: pages,
+                    perpage: perpage,
+                },
+                success: function (res) {
+                    let htmlStr = template('artList', res);
+                    $('tbody').html(htmlStr);
+                    // 获取到数据之后，我们还需要在这里写代码处理，所以使用一个回调函数
+                    if (callback != null) {
+                        callback(res)
+                    }
+                }
+            });
         }
-    });
-    // 定两个变量，用来表示页码和条数
-    let mypage=1;
-    let perpage=10;
-    // 展示文章条目数据
-    $.get({
-        url:BigNew.article_query,
-        data:{
-            type:$('#selCategory').val(),
-            state:$('selStatus').val(),
-            page:mypage,
-            perpage:perpage,
-        },
-        success:function(res){
-            //调用模板引擎在页面渲染数据
-            let htmlStr=template('artList',res);
-            $('tbody').html(htmlStr);
-        }
-    })
-})
+        // 定两个变量，用来表示页码和条数
+        let mypage = 1;
+        let perpage = 10;
+        // 展示文章条目数据
+        getData(mypage, function (res) {
+            $('#pagination-demo').twbsPagination({
+                totalPages: res.data.totalPage,
+                visiblePages: 7,
+                first: '首页',
+                prev: '上一页',
+                next: '下一页',
+                last: '尾页',
+                onPageClick: function (e, page) {
+                    mypage = page;
+                    getData(mypage, null);
+                }
+            })
+        })
+        // 筛选按钮注册点击事件
+        $('#btnSearch').on('click',function(e){
+            // 阻止默认行为
+            e.preventDefault();
+            getData(mypage,function(res){
+                //搜索到的数据条目是不一样的，所以总的页数是会动态改变的
+                $('#pagination-demo').twbsPagination('changeTotalPages',res.data.totalPage,1)
+            })
+        })
+    })      
 </script>
+
 </html>
