@@ -25,11 +25,11 @@
                 <div class="col-xs-6">
                     <form class="form-inline">
                         <select id="selCategory" name="" class="form-control input-sm">
-                            <option value="">所有分类</option>
+                            <!-- <option value="">所有分类</option>
                             <option>未分类</option>
                             <option>奇趣事</option>
                             <option>会生活</option>
-                            <option>爱旅行</option>
+                            <option>爱旅行</option> -->
                         </select>
                         <select id="selStatus" name="" class="form-control input-sm">
                             <option value="">所有状态</option>
@@ -55,7 +55,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
+                    <!-- <tr>
                         <td>王积千造统最头</td>
                         <td>杰克</td>
                         <td>奇趣事</td>
@@ -65,7 +65,7 @@
                             <a href="article_edit.html" class="btn btn-default btn-xs">编辑</a>
                             <a href="javascript:void(0);" class="btn btn-danger btn-xs delete">删除</a>
                         </td>
-                    </tr>
+                    </tr> -->
                 </tbody>
             </table>
             <div class="row text-center">
@@ -73,5 +73,61 @@
         </div>
     </div>
 </body>
+<script src="./libs/http.js"></script>
+<script type="text/html" id="categoryList">
+    <option value="">所有分类</option>
+{{each data}}
+<option value='{{$value.id}}'>{{$value.name}}</option>
+{{/each}}
+</script>
 
+<!-- 文章条目模板 -->
+<script type="text/html" id="artList">
+{{each data.data}}
+<tr>
+    <td>{{$value.title}}</td>
+    <td>{{$value.author}}</td>
+    <td>{{$value.category}}</td>
+    <td class="text-center">{{$value.date}}</td>
+    <td class="text-center">{{$value.state}}</td>
+    <td class="text-center">
+        <a href="article_edit.html?id={{$value.id}}" class="btn btn-default btn-xs">编辑</a>
+        <a href="javascript:void(0);" data-id='{{$value.id}}' class="btn btn-danger btn-xs delete">删除</a>
+    </td>
+</tr>
+{{/each}}
+</script>
+<script>
+// 当页面一加载就需要将文章类别信息和文章条目信息展示在页面
+$(function(){
+    //获取文章类别信息
+    $.get({
+        url: BigNew.category_list,
+        success:function(res){
+            if(res.code===200){
+                let htmlStr=template('categoryList',res)
+                $('#selCategory').html(htmlStr)
+            }
+        }
+    });
+    // 定两个变量，用来表示页码和条数
+    let mypage=1;
+    let perpage=10;
+    // 展示文章条目数据
+    $.get({
+        url:BigNew.article_query,
+        data:{
+            type:$('#selCategory').val(),
+            state:$('selStatus').val(),
+            page:mypage,
+            perpage:perpage,
+        },
+        success:function(res){
+            //调用模板引擎在页面渲染数据
+            let htmlStr=template('artList',res);
+            $('tbody').html(htmlStr);
+        }
+    })
+})
+</script>
 </html>
