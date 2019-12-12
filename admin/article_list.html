@@ -133,7 +133,11 @@
                         $('#pagination-demo').show();
                         $('#tips').hide();
                         callback(res)
-                    } else if (res.data.data.length === 0) {
+                    } else if (res.data.totalPage !== 0 && res.data.data.length==0 && res.data.totalPage==mypage-1) {
+                        mypage-=1;
+                        $('#pagination-demo').twbsPagination('changeTotalPages',res.data.totalPage,mypage);
+                        
+                    }else {
                         $('#pagination-demo').hide();
                         $('#tips').show();
                     }
@@ -152,9 +156,9 @@
                 prev: '上一页',
                 next: '下一页',
                 last: '尾页',
-                onPageClick: function (e, page) {
+                onPageClick: function (event, page) {
                     mypage = page;
-                    getData(mypage, null);
+                    getData(mypage, function(){});
                 }
             })
         })
@@ -162,10 +166,29 @@
         $('#btnSearch').on('click', function (e) {
             // 阻止默认行为
             e.preventDefault();
+            // 点击按钮的时候获取文章类型和状态
+            let type=$('#selCategory').val();
+            let state=$('#selStatus').val();
             getData(mypage, function (res) {
                 //搜索到的数据条目是不一样的，所以总的页数是会动态改变的
                 $('#pagination-demo').twbsPagination('changeTotalPages', res.data.totalPage, 1)
             });
+            $.get({
+                    url: BigNew.article_query,
+                    data: {
+                        type: $('#selCategory').val(),
+                        state: $('#selStatus').val(),
+                        page: mypage,
+                        perpage: perpage
+                    },
+                    success: function (res) {
+                        let htmlStr = template('artList', res);
+                        $('tbody').html(htmlStr);
+                        //我们获取到数据之后，我们还需要在这里写代码处理，所以我们使用一个函数，使用回调
+                        //修改总的页码数
+                        $('#pagination-demo').twbsPagination('changeTotalPages',res.data.totalPage,1)
+                    }
+                });
         })
         // 删除文章，删除是动态生成的，需要使用事件委托来注册
         $('tbody').on('click', '.delete', function () {
