@@ -89,17 +89,72 @@
 <script>
     $(function () {
         // 实现图片预览效果
-        $('#inputCover').on('change',function(){
-            let imgFile=this.files[0];
-            let url=URL.createObjectURL(imgFile);
+        $('#inputCover').on('change', function () {
+            let imgFile = this.files[0];
+            let url = URL.createObjectURL(imgFile);
             $('.article_cover').attr('src', url);
         })
         // 发送ajax请求
         $.get({
-            url:BigNew.category_list,
-            success:function(res){
-                let htmlStr=template('categoryList',res)
+            url: BigNew.category_list,
+            success: function (res) {
+                let htmlStr = template('categoryList', res);
+                $('select.category').html(htmlStr);
             }
+        })
+        // 添加日期插件
+        jeDate('#testico', {
+            format: 'YYYY-MM-DD',
+            isTime: false,
+            minDate: "2014-09-19 00:00:00",
+            zIndex: 30000,
+        })
+        // 添加wang文本编辑器
+        let E = window.wangEditor;
+        let editor = new E('#editor')
+        editor.create();
+
+        //当点击修改的按钮的时候，将文章数据更新，注册点击事件
+        $('.btn-edit').on('click', function (e) {
+            // 阻止默认行为
+            e.preventDefault();
+            //使用formData的方式来提交数据
+            let fd = new FormData($('#form')[0]);
+            fd.append('content', editor.txt.html());
+            fd.append('state', '已发布');
+            
+
+            // 发送ajax请求
+            $.post({
+                url: BigNew.article_publish,
+                data: fd,
+                processData: false,
+                contentType: false,
+                success: function (res) {
+                    if (res.code === 200) {
+                        window.history.back();
+                    }
+                }
+            })
+        })
+        $('.btn-draft').on('click', function (e) {
+            e.preventDefault();
+            let fd = new FormData($('form')[0]);
+            fd.append('content', editor.txt.html());
+
+            // 发送ajax请求
+            $.post({
+                url: BigNew.article_publish,
+                data: fd,
+                processData: false,
+                contentType: false,
+                success: function (res) {
+                    
+                    if (res.code === 200) {
+                        window.history.back();
+                    }
+                }
+            })
         })
     })
 </script>
